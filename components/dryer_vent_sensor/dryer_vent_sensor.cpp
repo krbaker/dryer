@@ -184,3 +184,6 @@ void DryerVentSensor::update() {
   if (this->selftest_counter_ != nullptr)
     this->selftest_counter_->publish_state(this->selftest_count);
 }
+
+} // namespace dryer_vent_sensor
+}  // namespace esphome

@@ -81,3 +81,6 @@ class DryerVentSensor : public PollingComponent {
 
   static void IRAM_ATTR timer_isr(void *arg);
 };
+
+} // namespace dryer_vent_sensor
+} // namespace esphome
