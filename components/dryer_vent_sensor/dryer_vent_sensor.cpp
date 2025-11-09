@@ -12,9 +12,10 @@ static hw_timer_t *timer = nullptr;
 
 void IRAM_ATTR DryerVentSensor::timer_isr(void *arg) {
   int16_t count;
-  pcnt_get_counter_value(PCNT_UNIT_0, &count);
+  pulse_cnt_unit_handle_t unit = (pulse_cnt_unit_handle_t)arg;
+  pulse_cnt_get_count(unit, &count);
   ring[current_item] = count;
-  pcnt_counter_clear(PCNT_UNIT_0);
+  pulse_cnt_zero(unit);
   if (current_item >= RING_SIZE - 1) {
     current_item = 0;
   } else {
@@ -29,23 +30,28 @@ void DryerVentSensor::setup() {
   pinMode(this->count_pin_, INPUT);
 
   // Configure pulse counter
-  pcnt_config_t pcnt_config = {
-    .pulse_gpio_num = this->count_pin_,
-    .ctrl_gpio_num = -1,
-    .lctrl_mode = PCNT_MODE_KEEP,
-    .hctrl_mode = PCNT_MODE_KEEP,
-    .pos_mode = PCNT_COUNT_INC,
-    .neg_mode = PCNT_COUNT_DIS,
-    .counter_h_lim = 0,
-    .counter_l_lim = 0,
-    .unit = PCNT_UNIT_0,
-    .channel = PCNT_CHANNEL_0
+  pulse_cnt_config_t unit_config = {
+    .gpio_num = this->count_pin_,
+    .edge_config = {
+      .pos_mode = PCNT_COUNT_INC,  // Count up on rising edge
+      .neg_mode = PCNT_COUNT_DIS,  // Disable counting on falling edge
+      .zero_mode = PCNT_COUNT_DIS, // Keep the counter value
+      .pe_mode = PCNT_COUNT_DIS,   // Keep the counter value
+    },
+    .intr_priority = 0,
   };
 
-  pcnt_unit_config(&pcnt_config);
-  pcnt_set_filter_value(PCNT_UNIT_0, 500);
-  pcnt_filter_enable(PCNT_UNIT_0);
-  pcnt_counter_resume(PCNT_UNIT_0);
+  pulse_cnt_unit_handle_t unit = nullptr;
+  pulse_cnt_new_unit(&unit_config, &unit);
+
+  pulse_cnt_glitch_filter_config_t filter_config = {
+    .max_glitch_ns = 500,
+  };
+  pulse_cnt_set_glitch_filter(unit, &filter_config);
+  pulse_cnt_enable(unit);
+
+  // Store the unit handle
+  this->pcnt_unit_ = unit;
 
   // Setup timer
   timer = timerBegin(0, 80, true);

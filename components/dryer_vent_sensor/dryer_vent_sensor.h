@@ -5,7 +5,7 @@
 #include "esphome/components/sensor/sensor.h"
 
 #ifdef USE_ESP32
-#include <driver/pcnt.h>
+#include <driver/pulse_cnt.h>
 #endif
 
 namespace esphome {
@@ -43,6 +43,7 @@ class DryerVentSensor : public PollingComponent {
  protected:
   int count_pin_{2};  // default count pin
   int test_pin_{15};  // default test pin
+  pulse_cnt_unit_handle_t pcnt_unit_{nullptr};
   
   sensor::Sensor *overheat_sensor_{nullptr};
   sensor::Sensor *clog_sensor_{nullptr};
