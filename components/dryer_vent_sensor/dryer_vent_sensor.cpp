@@ -13,9 +13,9 @@ static hw_timer_t *timer = nullptr;
 void IRAM_ATTR DryerVentSensor::timer_isr(void *arg) {
   int16_t count;
   pcnt_unit_handle_t unit = (pcnt_unit_handle_t)arg;
-  pulse_cnt_get_count(unit, &count);
+  pcnt_unit_get_count(unit, &count);
   ring[current_item] = count;
-  pulse_cnt_zero(unit);
+  pcnt_unit_clear_count(unit);
   if (current_item >= RING_SIZE - 1) {
     current_item = 0;
   } else {
@@ -30,7 +30,7 @@ void DryerVentSensor::setup() {
   pinMode(this->count_pin_, INPUT);
 
   // Configure pulse counter
-  pulse_cnt_config_t unit_config = {
+  pcnt_unit_config_t unit_config = {
     .gpio_num = this->count_pin_,
     .edge_config = {
       .pos_mode = PCNT_COUNT_INC,  // Count up on rising edge
@@ -42,13 +42,13 @@ void DryerVentSensor::setup() {
   };
 
   pcnt_unit_handle_t unit = nullptr;
-  pulse_cnt_new_unit(&unit_config, &unit);
+  pcnt_new_unit(&unit_config, &unit);
 
-  pulse_cnt_glitch_filter_config_t filter_config = {
+  pcnt_glitch_filter_config_t filter_config = {
     .max_glitch_ns = 500,
   };
-  pulse_cnt_set_glitch_filter(unit, &filter_config);
-  pulse_cnt_enable(unit);
+  pcnt_unit_set_glitch_filter(unit, &filter_config);
+  pcnt_unit_enable(unit);
 
   // Store the unit handle
   this->pcnt_unit_ = unit;
