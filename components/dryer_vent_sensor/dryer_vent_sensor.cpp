@@ -11,7 +11,7 @@ static uint16_t current_item = 0;
 static hw_timer_t *timer = nullptr;
 
 void IRAM_ATTR DryerVentSensor::timer_isr(void *arg) {
-  int16_t count;
+  int32_t count;
   pcnt_unit_handle_t unit = (pcnt_unit_handle_t)arg;
   pcnt_unit_get_count(unit, &count);
   ring[current_item] = count;
