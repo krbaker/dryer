@@ -12,7 +12,7 @@ static hw_timer_t *timer = nullptr;
 
 void IRAM_ATTR DryerVentSensor::timer_isr(void *arg) {
   int16_t count;
-  pulse_cnt_unit_handle_t unit = (pulse_cnt_unit_handle_t)arg;
+  pcnt_unit_handle_t unit = (pcnt_unit_handle_t)arg;
   pulse_cnt_get_count(unit, &count);
   ring[current_item] = count;
   pulse_cnt_zero(unit);
@@ -41,7 +41,7 @@ void DryerVentSensor::setup() {
     .intr_priority = 0,
   };
 
-  pulse_cnt_unit_handle_t unit = nullptr;
+  pcnt_unit_handle_t unit = nullptr;
   pulse_cnt_new_unit(&unit_config, &unit);
 
   pulse_cnt_glitch_filter_config_t filter_config = {
